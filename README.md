@@ -33,8 +33,8 @@ sudo apt-get install make patch makepatch curl wget rsync gcc g++ git perl-modul
 ## Extend bootstrap-perl with --notaintsupport option
 
 See
-[this](https://github.com/renormalist/app-bootstrap-perl/commit/248d588645ac2c475ed63cb113a1b4bdfbf44b0f) and
-[that](https://github.com/renormalist/app-bootstrap-perl/commit/73553836c37ae6e4370a76778491134a803d6bb8)
+[this](https://github.com/renormalist/app-bootstrap-perl/commit/b91b85b462a8907325102d6b2ec038e4a22d4416) and
+[that](https://github.com/renormalist/app-bootstrap-perl/commit/3d215db51476cbb7f388be41c27fb458c7093543)
 commit for taintmode building and also the other commits nearby.
 
 ## Setting up CPAN mirror
@@ -144,9 +144,9 @@ done
 ## Extend Perl::Formance to generate taintsupport metainfo
 
 See for instance
-[this](https://github.com/renormalist/Benchmark-Perl-Formance/commit/17f48140b0299021214ae2c30c8d8d66507b84a1)
+[this](https://github.com/renormalist/Benchmark-Perl-Formance/commit/0461a1a5ae2cd548c57fcba782ae77f63f2d43df)
 and
-[that](https://github.com/renormalist/Benchmark-Perl-Formance/commit/8c38c77b320eb7a5f1ba66468e8d186e946ef79a)
+[that](https://github.com/renormalist/Benchmark-Perl-Formance/commit/d4f8cf9449e9a8b0b4833e317a3ac28b30dc474a)
 github commit.
 
 ## Sample perlformance run
