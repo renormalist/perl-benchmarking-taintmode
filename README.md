@@ -17,10 +17,10 @@ Setting things up, extend tools, sample runs.
 - [x] install `perlformance`
 - [x] extend bootstrap-perl for `NO_TAINT_SUPPORT` option
 - [x] extend perlformance for `NO_TAINT_SUPPORT` option and metainfo
-- [ ] setup/reuse existing `benchmark-anything` setup
-- [ ] sample run/reporting/querying
+- [x] setup/reuse existing `benchmark-anything` and/or `Tapper` setup
+- [x] sample run/reporting/querying
+- [x] setup/reuse Jupyter for more evaluations
 - [ ] setup and run `Benchmark::Perl::Formance::Analyzer` and `BenchmarkAnything::Evaluations`
-- [ ] setup/reuse Jupyter for more evaluations
 - [ ] Do The Right Thing - do everything again for real on a silenced machine
 
 
@@ -218,6 +218,35 @@ perlformance.perl5.PerlStone2015.regex.trie_limit           : 0.049174
 perlformance.perl5.PerlStone2015.regexdna                   : 14.619103
 perlformance.perl5.PerlStone2015.spectralnorm               : 50.889741
 ```
+
+## Generating meta information in BenchmarkAnything or Tapper environment
+
+Define a common id that gets into the metainfo so we can distinguish
+the results, eg. experimental vs. real data.
+
+Use the (new) --tap options to generate everything as TAP with the
+data in embedded YAMLish2, so it's easy to feed into an existing
+Tapper infrastructure for easier processing later.
+
+```
+$ export PERLFORMANCE_QUALID=notaint-2021-dummy01
+$ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance --plugin PerlStone2015.fasta --fastmode --tap-plan 1 --tap-headers
+  [...a big TAP report with results]
+$ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance --plugin PerlStone2015.fasta --fastmode --tap-plan 1 --tap-headers
+  [...a big TAP report with results]
+```
+
+Reporting multiple such experimental data points into Tapper:
+
+```
+$ export TAPPER_REPORT_SERVER=...
+$ for i in $(seq 1 40); do ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance --plugin PerlStone2015.fasta --fastmode --tap-plan 1 --tap-headers | netcat -q1 $TAPPER_REPORT_SERVER 7357 ; sleep $(rand -M 4); done
+$ for i in $(seq 1 40); do ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance --plugin PerlStone2015.fasta --fastmode --tap-plan 1 --tap-headers | netcat -q1 $TAPPER_REPORT_SERVER 7357 ; sleep $(rand -M 4); done
+```
+
+## Evaluation / Charts
+
+(using a Jupyter instance with BenchmarkAnything support libs)
 
 # Execution
 
