@@ -1,4 +1,4 @@
-# Measuring -DNO_TAINT_SUPPORT in Perl - notes and results
+# Measuring -DNO_TAINT_SUPPORT in Perl
 
 This is about benchmarking the impact of a `-DNO_TAINT_SUPPORT` option
 in Perl 5. These notes here should make the exercise reproducable.
