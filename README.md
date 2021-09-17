@@ -75,6 +75,8 @@ $ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436c
 
 ## Install a bleadperl with no taint support
 
+This Perl fails when trying to use taint mode.
+
 Do it:
 
 ```bash
@@ -94,15 +96,58 @@ $ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f43
   -der -Dusedevel -Dusethreads -Duse64bitall -Accflags=-DNO_TAINT_SUPPORT -Dprefix=/home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce
 ```
 
+## Install a bleadperl with silent no taint support
+
+This Perl does not fail but silently ignores the taint checks.
+
+Explicitely specify commit as I did this days later.
+
+Do it:
+
+```bash
+bootstrap-perl -j 32 --version blead --cpan -m file://$HOME/CPAN/ --notaintsupport --silentnotaint --version 6128f436ce -M Task::PerlFormance
+```
+
+Verify:
+
+```bash
+$ ls -1 ~/.bootstrapperl/$HOSTNAME/
+  cpan
+  perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce
+  perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436ce
+$ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce/bin/perl -v
+  This is perl 5, version 35, subversion 4 (v5.35.4 (v5.35.3-151-g6128f436ce)) built for x86_64-linux-thread-multi
+$ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce/bin/perl -MConfig -E 'say $Config{config_args}'
+  -der -Dusedevel -Dusethreads -Duse64bitall -Accflags=-DNO_TAINT_SUPPORT -Dprefix=/home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce
+```
 
 ## Check taint support:
 
-```
-$ /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436ce/bin/perl    -MScalar::Util -MCwd -E 'say Scalar::Util::tainted(Cwd::getcwd())'
-  0
-$ /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436ce/bin/perl -T -MScalar::Util -MCwd -E 'say Scalar::Util::tainted(Cwd::getcwd())'
-  1
+Normal Perl:
 
+```
+$ /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436ce/bin/perl            -MScalar::Util -MCwd -E 'say Scalar::Util::tainted(Cwd::getcwd())'
+  0
+$ /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436ce/bin/perl         -T -MScalar::Util -MCwd -E 'say Scalar::Util::tainted(Cwd::getcwd())'
+  1
+```
+
+No taint support:
+
+```
+$ /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce/bin/perl          -MScalar::Util -MCwd -E 'say Scalar::Util::tainted(Cwd::getcwd())'
+  0
+$ /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce/bin/perl       -T -MScalar::Util -MCwd -E 'say Scalar::Util::tainted(Cwd::getcwd())'
+  This perl was compiled without taint support. Cowardly refusing to run with -t or -T flags.
+```
+
+Silent no taint support:
+
+```
+$ /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-silentnotaint-v5.35.3-151-g6128f436ce/bin/perl    -MScalar::Util -MCwd -E 'say Scalar::Util::tainted(Cwd::getcwd())'
+  0
+$ /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-silentnotaint-v5.35.3-151-g6128f436ce/bin/perl -T -MScalar::Util -MCwd -E 'say Scalar::Util::tainted(Cwd::getcwd())'
+  0
 ```
 
 ## Force install CPAN modules that refuse to run tests without taint support
@@ -112,6 +157,10 @@ they explicitely test and insist on it. I reviewed the builds to get a
 list of modules that only fail due to that reason but look ok
 otherwise, so we can force install them first, and the others should
 work normal.
+
+Alternatively, you can build Perl with and additional option
+`--silentnotaint` (this came after the below list) but some modules
+that explicitely test their tainting still fail.
 
 ```
 for i in \
@@ -140,6 +189,26 @@ for i in \
 done
 ```
 
+Still some struggling with silentnotaint perl but generally looked ok:
+
+```
+for i in \
+ Mail::SpamAssassin \
+ IPC::System::Simple \
+; do \
+    /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-silentnotaint-v5.35.3-151-g6128f436ce/bin/mycpan -T -i $i  ; \
+done
+```
+
+## Other manual dependencies
+
+```
+for i in \
+ Perl::Critic \
+; do \
+    /home/ss5/.bootstrapperl/ss5z/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce/bin/mycpan -i $i ; \
+done
+```
 
 ## Extend Perl::Formance to generate taintsupport metainfo
 
@@ -185,7 +254,7 @@ $ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436c
   perlformance.perl5.PerlStone2015.spectralnorm               : 51.374912
 ```
 
-And without taint support:
+With no taint support:
 
 ```
 $ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-notaint-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance -vv --plugin PerlStone2015
@@ -219,6 +288,12 @@ perlformance.perl5.PerlStone2015.regexdna                   : 14.619103
 perlformance.perl5.PerlStone2015.spectralnorm               : 50.889741
 ```
 
+With silent no taint support:
+
+```
+$ ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-silentnotaint-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance -vv --plugin PerlStone2015
+```
+
 ## Generating meta information in BenchmarkAnything or Tapper environment
 
 Define a common id that gets into the metainfo so we can distinguish
@@ -244,6 +319,38 @@ $ for i in $(seq 1 40); do ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-not
 $ for i in $(seq 1 40); do ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-taint-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance --plugin PerlStone2015.fasta --fastmode --tap-plan 1 --tap-headers | netcat -q1 $TAPPER_REPORT_SERVER 7357 ; sleep $(rand -M 4); done
 ```
 
+## Checking which other perlformance plugins work:
+
+- [x] Mandelbrot
+- [x] SpamAssassin (with silentnotaint)
+- [x] RxMicro
+- [x] MatrixReal
+- [x] Fib
+- [x] FibOO
+- [x] FibMoose
+- [x] FibMouse
+- [x] FibOOSig
+- [x] DPath
+- [x] Mem
+- [x] AccessorsArray
+- [x] AccessorsClassAccessor
+- [x] AccessorsClassAccessorFast
+- [x] AccessorsClassMethodMaker
+- [x] AccessorsClassXSAccessor
+- [x] AccessorsClassXSAccessorArray
+- [x] AccessorsHash
+- [x] AccessorsMoo
+- [x] AccessorsMoose
+- [x] AccessorsMouse
+- [x] AccessorsObjectTinyRW
+- [x] Threads
+- [x] ThreadsShared
+- [-] Rx (fastmode fails)
+- [-] RxCmp (fragile pluggable rx engines)
+- [-] Prime (GMPz error)
+- [-] P6STD (struggles)
+- [?] PerlCritic (dependency struggles?)
+
 ## Evaluation / Charts
 
 (using a Jupyter instance with BenchmarkAnything support libs)
@@ -251,6 +358,40 @@ $ for i in $(seq 1 40); do ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-tai
 # Execution
 
 The Real Deal.
+
+Examples, just loop for some data points:
+
+```
+for i in $(seq 1 20); do \
+  for j in taint notaint ; do \
+      ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-$j-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance \
+        --plugin PerlStone2015
+        --tap-plan 1 \
+        --tap-headers \
+      | netcat -q1 $TAPPER_REPORT_SERVER 7357 ; \
+  done ;\
+  sleep 1; \
+  echo -n "... one iteration done - "; \
+  date; \
+done
+```
+
+SpamAssassin uses the `SILENT_NO_TAINT_SUPPORT` Perl:
+
+```
+for i in $(seq 1 40); do \
+  for j in taint silentnotaint; do \
+    ~/.bootstrapperl/$HOSTNAME/perl-5.35-thread-64bit-$j-v5.35.3-151-g6128f436ce/bin/benchmark-perlformance \
+      --plugin SpamAssassin \
+      --tap-plan 1 \
+      --tap-headers \
+    | netcat -q1 $TAPPER_REPORT_SERVER 7357 ; \
+  done ; \
+  sleep 1; \
+  echo -n "... one iteration done - "; \
+  date; \
+done
+```
 
 ## Silencing OS noise
 
@@ -273,4 +414,5 @@ sudo service apache-htcacheclean stop;
 sudo service unattended-upgrades stop;
 sudo service conserver-server stop;
 sudo service speech-dispatcher stop;
+sudo service --status-all;
 ```
